@@ -105,4 +105,3 @@ We are always very happy to have contributions, whether for trivial cleanups or 
 ## License
 
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html) Copyright (C) Apache Software Foundation 
->>>>>>> a2a/main
