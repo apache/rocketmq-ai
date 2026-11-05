@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 620" width="960" height="620">
+  <style>
+    text { font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Microsoft YaHei', 'Microsoft JhengHei', 'SimHei', sans-serif; }
+  </style>
+  <defs>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-gray" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+    </marker>
+  </defs>
+
+  <rect width="960" height="620" fill="#ffffff"/>
+
+  <!-- title -->
+  <text x="480" y="36" text-anchor="middle" fill="#111827" font-size="16" font-weight="600">LiteTopic Implementation — LiteTopicReplicationStrategy Internals</text>
+  <text x="480" y="58" text-anchor="middle" fill="#6b7280" font-size="12">Outbound routes per task to a channel; inbound consumer fires events, poison pill unsubscribes</text>
+
+  <!-- context strip: A2A panorama -->
+  <rect x="65" y="76" width="230" height="44" rx="8" fill="#f9fafb" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="180" y="95" text-anchor="middle" fill="#111827" font-size="13" font-weight="600">Instance A</text>
+  <text x="180" y="111" text-anchor="middle" fill="#6b7280" font-size="11">EventQueue enqueue</text>
+  <rect x="365" y="76" width="230" height="44" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="480" y="95" text-anchor="middle" fill="#111827" font-size="13" font-weight="600">Replication Channel</text>
+  <text x="480" y="111" text-anchor="middle" fill="#2563eb" font-size="11">zoomed in below</text>
+  <rect x="665" y="76" width="230" height="44" rx="8" fill="#f9fafb" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="780" y="95" text-anchor="middle" fill="#111827" font-size="13" font-weight="600">Instance B</text>
+  <text x="780" y="111" text-anchor="middle" fill="#6b7280" font-size="11">mirror queue · clients</text>
+  <line x1="295" y1="98" x2="357" y2="98" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <text x="326" y="92" text-anchor="middle" fill="#4b5563" font-size="12">replicated</text>
+  <line x1="603" y1="98" x2="657" y2="98" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <text x="630" y="92" text-anchor="middle" fill="#4b5563" font-size="12">delivered</text>
+
+  <!-- zoom-in cone and frame around strategy internals -->
+  <polygon points="365,120 595,120 916,164 44,164" fill="#eff6ff"/>
+  <line x1="365" y1="120" x2="44" y2="164" stroke="#60a5fa" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <line x1="595" y1="120" x2="916" y2="164" stroke="#60a5fa" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <rect x="44" y="164" width="872" height="298" rx="10" fill="none" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <rect x="380" y="154" width="200" height="20" rx="4" fill="#ffffff" stroke="#93c5fd" stroke-width="1"/>
+  <text x="480" y="168" text-anchor="middle" fill="#2563eb" font-size="11" font-weight="600">zoomed view — strategy internals</text>
+
+  <!-- outbound container -->
+  <rect x="60" y="180" width="240" height="200" rx="8" fill="none" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="6,4" data-graph-role="container"/>
+  <text x="70" y="202" fill="#374151" font-size="12" font-weight="600">Outbound · send(taskId, event)</text>
+  <rect x="70" y="224" width="220" height="48" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="180" y="246" text-anchor="middle" fill="#111827" font-size="13" font-weight="600">ReplicatedEventQueueItem</text>
+  <text x="180" y="263" text-anchor="middle" fill="#6b7280" font-size="11">JSON serialization</text>
+  <rect x="70" y="288" width="220" height="48" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="180" y="310" text-anchor="middle" fill="#111827" font-size="13" font-weight="600">Producer</text>
+  <text x="180" y="327" text-anchor="middle" fill="#6b7280" font-size="11">parentTopic · t-&lt;taskId&gt;</text>
+  <text x="70" y="352" fill="#9ca3af" font-size="11">from local EventQueue enqueue</text>
+  <text x="70" y="366" fill="#9ca3af" font-size="11">taskId = natural routing key</text>
+
+  <!-- broker -->
+  <rect x="360" y="180" width="240" height="200" rx="8" fill="#faf5ff" stroke="#e9d5ff" stroke-width="1.5" data-graph-role="container"/>
+  <text x="480" y="202" text-anchor="middle" fill="#111827" font-size="13" font-weight="600">RocketMQ Broker</text>
+  <text x="480" y="219" text-anchor="middle" fill="#6b7280" font-size="11">parentTopic</text>
+  <rect x="380" y="224" width="200" height="48" rx="6" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="480" y="246" text-anchor="middle" fill="#111827" font-size="12" font-weight="600">channel</text>
+  <text x="480" y="262" text-anchor="middle" fill="#6b7280" font-size="11">t-task-1</text>
+  <rect x="380" y="288" width="200" height="48" rx="6" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="480" y="310" text-anchor="middle" fill="#111827" font-size="12" font-weight="600">channel</text>
+  <text x="480" y="326" text-anchor="middle" fill="#6b7280" font-size="11">t-task-2</text>
+  <text x="480" y="356" text-anchor="middle" fill="#9ca3af" font-size="11">… one channel per task</text>
+  <text x="480" y="370" text-anchor="middle" fill="#9ca3af" font-size="11">delivered once per group</text>
+
+  <!-- inbound container -->
+  <rect x="660" y="180" width="240" height="200" rx="8" fill="none" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="6,4" data-graph-role="container"/>
+  <text x="670" y="202" fill="#374151" font-size="12" font-weight="600">Inbound · onMessage()</text>
+  <rect x="670" y="224" width="220" height="48" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="780" y="246" text-anchor="middle" fill="#111827" font-size="13" font-weight="600">LitePushConsumer</text>
+  <text x="780" y="263" text-anchor="middle" fill="#6b7280" font-size="11">singleton · dedicated group</text>
+  <rect x="670" y="288" width="220" height="48" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="780" y="310" text-anchor="middle" fill="#111827" font-size="13" font-weight="600">instanceId check</text>
+  <text x="780" y="327" text-anchor="middle" fill="#6b7280" font-size="11">own → drop · others → fire event</text>
+  <text x="670" y="352" fill="#ea580c" font-size="11">stream open → subscribeLite(channel)</text>
+  <text x="670" y="366" fill="#dc2626" font-size="11">QueueClosedEvent → unsubscribe channel</text>
+
+  <!-- CDI observer -->
+  <line x1="780" y1="380" x2="780" y2="392" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+  <rect x="660" y="400" width="240" height="48" rx="6" fill="#f9fafb" stroke="#d1d5db" stroke-width="1"/>
+  <text x="780" y="421" text-anchor="middle" fill="#6b7280" font-size="11">ReplicatedQueueManager</text>
+  <text x="780" y="437" text-anchor="middle" fill="#6b7280" font-size="11">→ mirror queue → subscribed clients</text>
+
+  <!-- arrows -->
+  <line x1="300" y1="312" x2="352" y2="312" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <text x="326" y="306" text-anchor="middle" fill="#4b5563" font-size="12">send</text>
+  <line x1="608" y1="248" x2="652" y2="248" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <text x="630" y="242" text-anchor="middle" fill="#4b5563" font-size="12">deliver</text>
+
+  <!-- key mechanisms -->
+  <rect x="60" y="470" width="840" height="76" rx="8" fill="#f9fafb" stroke="#d1d5db" stroke-width="1"/>
+  <text x="80" y="492" fill="#4b5563" font-size="12">1. Each task has one channel: taskId is the natural routing key → precise delivery, not shared-topic broadcast</text>
+  <text x="80" y="512" fill="#4b5563" font-size="12">2. Subscribing without offset → broker replays channel history; late subscribers deterministically back-fill</text>
+  <text x="80" y="532" fill="#4b5563" font-size="12">3. Dedicated group per instance → broadcast per group; a shared group → random single dispatch, mirrors silently fall behind</text>
+
+  <!-- legend -->
+  <line x1="405" y1="585" x2="435" y2="585" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <text x="441" y="589" fill="#6b7280" font-size="12">event send / deliver</text>
+</svg>
