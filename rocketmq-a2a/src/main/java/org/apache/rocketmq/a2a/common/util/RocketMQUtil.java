@@ -645,10 +645,13 @@ public class RocketMQUtil {
         }
         Map<String, A2AResponseFuture> msgIdAndAsyncTypedMap = MESSAGE_RESPONSE_MAP.computeIfAbsent(namespace, k -> new ConcurrentHashMap<>());
         CompletableFuture<String> completableFuture = new CompletableFuture<>();
-        msgIdAndAsyncTypedMap.put(responseMessageId, new A2AResponseFuture(completableFuture, typeReference));
-        String result = completableFuture.get(120, TimeUnit.SECONDS);
-        msgIdAndAsyncTypedMap.remove(responseMessageId);
-        return result;
+        A2AResponseFuture responseFuture = new A2AResponseFuture(completableFuture, typeReference);
+        msgIdAndAsyncTypedMap.put(responseMessageId, responseFuture);
+        try {
+            return completableFuture.get(120, TimeUnit.SECONDS);
+        } finally {
+            msgIdAndAsyncTypedMap.remove(responseMessageId, responseFuture);
+        }
     }
 
     /**
