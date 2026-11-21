@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import io.a2a.client.transport.spi.ClientTransport;
@@ -230,17 +231,30 @@ public class RocketMQTransport implements ClientTransport {
         checkNotNullParam("request", request);
         checkNotNullParam("request.message", request.message());
         checkNotNullParam("eventConsumer", eventConsumer);
+        AtomicReference<String> registeredRequestId = new AtomicReference<>();
         try {
             SendStreamingMessageRequest sendStreamingMessageRequest = new SendStreamingMessageRequest.Builder().jsonrpc(JSONRPCMessage.JSONRPC_VERSION).method(SendStreamingMessageRequest.METHOD).params(request).build();
             PayloadAndHeaders payloadAndHeaders = applyInterceptors(SendStreamingMessageRequest.METHOD, sendStreamingMessageRequest, this.agentCard, context);
-            String requestId = sendRocketMQRequest(payloadAndHeaders, this.agentTopic, resolveAndSubscribeLiteTopic(request.message().getContextId()), this.workAgentResponseTopic, this.producer, null);
+            String requestId = sendRocketMQRequest(payloadAndHeaders, this.agentTopic,
+                resolveAndSubscribeLiteTopic(request.message().getContextId()), this.workAgentResponseTopic,
+                this.producer, null, id -> {
+                    MESSAGE_STREAM_RESPONSE_MAP.computeIfAbsent(this.namespace, k -> new ConcurrentHashMap<>())
+                        .put(id, new SSEEventListener(eventConsumer, errorConsumer));
+                    registeredRequestId.set(id);
+                });
             if (StringUtils.isEmpty(requestId)) {
                 log.error("RocketMQTransport sendMessageStreaming error, requestId is empty");
                 return;
             }
-            MESSAGE_STREAM_RESPONSE_MAP.computeIfAbsent(this.namespace, k -> new ConcurrentHashMap<>()).put(requestId, new SSEEventListener(eventConsumer, errorConsumer));
             log.debug("RocketMQTransport sendMessageStreaming successfully, requestId: [{}]", requestId);
         } catch (Exception e) {
+            String requestId = registeredRequestId.get();
+            if (StringUtils.isNotEmpty(requestId)) {
+                Map<String, SSEEventListener> listeners = MESSAGE_STREAM_RESPONSE_MAP.get(this.namespace);
+                if (listeners != null) {
+                    listeners.remove(requestId);
+                }
+            }
             log.error("RocketMQTransport sendMessageStreaming error", e);
             throw new A2AClientException("RocketMQTransport sendMessageStreaming error", e);
         }
