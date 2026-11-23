@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -392,9 +393,29 @@ public class RocketMQUtil {
      */
     public static String sendRocketMQRequest(PayloadAndHeaders payloadAndHeaders, String agentTopic, String liteTopic, String workAgentResponseTopic, Producer producer, String taskId)
         throws JsonProcessingException, ClientException {
+        return sendRocketMQRequest(payloadAndHeaders, agentTopic, liteTopic, workAgentResponseTopic, producer, taskId,
+            requestId -> {
+            });
+    }
+
+    /**
+     * Sends a request and exposes its generated request ID before the message is submitted.
+     *
+     * <p>Streaming responses can arrive immediately after the producer returns. Registering the
+     * response listener from this callback closes the race between sending the request and adding
+     * the listener to {@link #MESSAGE_STREAM_RESPONSE_MAP}.</p>
+     *
+     * @param requestIdConsumer callback invoked with the request ID before the producer sends.
+     */
+    public static String sendRocketMQRequest(PayloadAndHeaders payloadAndHeaders, String agentTopic, String liteTopic,
+        String workAgentResponseTopic, Producer producer, String taskId, Consumer<String> requestIdConsumer)
+        throws JsonProcessingException, ClientException {
         if (null == payloadAndHeaders || StringUtils.isEmpty(agentTopic) || StringUtils.isEmpty(liteTopic) || StringUtils.isEmpty(workAgentResponseTopic) || null == producer) {
             log.warn("RocketMQUtil sendRocketMQRequest param is invalid, payloadAndHeaders: [{}], agentTopic: [{}], workAgentResponseTopic: [{}], liteTopic: [{}], producer: [{}]", payloadAndHeaders, agentTopic, workAgentResponseTopic, liteTopic, producer);
             throw new IllegalArgumentException("sendRocketMQRequest param is invalid");
+        }
+        if (requestIdConsumer == null) {
+            throw new IllegalArgumentException("requestIdConsumer must not be null");
         }
         //build RocketMQRequest
         String requestId = RequestIdGenerator.nextId();
@@ -426,6 +447,7 @@ public class RocketMQUtil {
             log.debug("RocketMQUtil sendRocketMQRequest send message to serverNormalTopic agentTopic: [{}]", agentTopic);
         }
         try {
+            requestIdConsumer.accept(requestId);
             SendReceipt sendReceipt = producer.send(message);
             log.debug("RocketMQUtil sendRocketMQRequest agentTopic: [{}], msgId: [{}], requestId: [{}]", agentTopic, sendReceipt.getMessageId(), requestId);
             return requestId;
