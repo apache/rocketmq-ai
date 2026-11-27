@@ -171,6 +171,7 @@ public class RocketMQTransport implements ClientTransport {
         this.defaultLiteTopic = rocketMQTransportConfig.getLiteTopic();
         this.useDefaultRecoverMode = rocketMQTransportConfig.isUseDefaultRecoverMode();
         this.agentCard = agentCard;
+        this.needsExtendedCard = agentCard != null && agentCard.supportsAuthenticatedExtendedCard();
         // Generate a random lite topic if none is provided
         this.defaultLiteTopic = StringUtils.isEmpty(defaultLiteTopic) ? UUID.randomUUID().toString() : defaultLiteTopic;
         // Parse RocketMQ resource info from the agent card
