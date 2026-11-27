@@ -469,7 +469,8 @@ public class RocketMQTransport implements ClientTransport {
             DeleteTaskPushNotificationConfigRequest deleteTaskPushNotificationRequest = new DeleteTaskPushNotificationConfigRequest.Builder().jsonrpc(JSONRPCMessage.JSONRPC_VERSION).method(DeleteTaskPushNotificationConfigRequest.METHOD).params(request).build();
             PayloadAndHeaders payloadAndHeaders = applyInterceptors(DeleteTaskPushNotificationConfigRequest.METHOD, deleteTaskPushNotificationRequest, this.agentCard, context);
             String requestId = sendRocketMQRequest(payloadAndHeaders, this.agentTopic, defaultLiteTopic, this.workAgentResponseTopic, this.producer, request.id());
-            getResult(requestId, this.namespace, DELETE_TASK_PUSH_NOTIFICATION_CONFIG_RESPONSE_REFERENCE);
+            unmarshalResponse(getResult(requestId, this.namespace, DELETE_TASK_PUSH_NOTIFICATION_CONFIG_RESPONSE_REFERENCE),
+                DELETE_TASK_PUSH_NOTIFICATION_CONFIG_RESPONSE_REFERENCE);
         } catch (Exception e) {
             log.error("RocketMQTransport deleteTaskPushNotificationConfigurations error", e);
             throw new A2AClientException("RocketMQTransport deleteTaskPushNotificationConfigurations error", e);
