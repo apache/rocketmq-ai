@@ -292,7 +292,7 @@ public class RocketMQA2AServerRoutes extends A2AServerRoutes {
      * @return a fully built {@link RocketMQResponse} representing an error result.
      */
     private RocketMQResponse buildErrorResponse(JSONRPCErrorResponse error, String requestId) {
-        return buildBaseResponse(requestId).end(true).stream(false).responseBody(toJsonString(JSON.toJSONString(error))).build();
+        return buildBaseResponse(requestId).end(true).stream(false).responseBody(toJsonString(error)).build();
     }
 
     /**
