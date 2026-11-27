@@ -725,7 +725,7 @@ public class RocketMQUtil {
      * @return rocketMQResource, or {@code null} if parsing fails or no RocketMQ interface found.
      */
     public static RocketMQResource parseAgentCardAddition(AgentCard agentCard) {
-        if (null == agentCard || StringUtils.isEmpty(agentCard.preferredTransport()) || StringUtils.isEmpty(agentCard.url()) || CollectionUtils.isEmpty(agentCard.additionalInterfaces())) {
+        if (null == agentCard || StringUtils.isEmpty(agentCard.preferredTransport()) || StringUtils.isEmpty(agentCard.url())) {
             log.warn("RocketMQTransport parseAgentCardAddition param is invalid, agentCard: [{}]", JSON.toJSONString(agentCard));
             return null;
         }
